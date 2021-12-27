@@ -39,6 +39,7 @@ class MyWidgetsMain(QtWidgets.QWidget):
             list_ip.append(row_ip)
         return list_ip
 
+
 class MyThread(QtCore.QThread):
     signal = QtCore.Signal(int)
 
@@ -56,11 +57,40 @@ class MyWidgetsSetting(QtWidgets.QWidget):
         self.ui.setupUi(self)
 
         self.ui.pushButton.clicked.connect(self.add_ip)
+        self.ui.pushButton_2.clicked.connect(self.return_list)
 
     def add_ip(self):
         text, ok = QtWidgets.QInputDialog.getText(self, "Введите IP", "Какой IP хотите ввести?")
-        if ok:
+        check = self.check_valid(text)
+
+        if check:
             self.ui.listWidget.addItem(text)
+
+    def check_valid(self, text):
+        list_text = text.split(".")
+        errorMsg = QtWidgets.QErrorMessage(self)
+
+        if len(list_text) != 4:
+            errorMsg.showMessage(str("IP введен неверно, введите заново"))
+            return False
+
+        for simbol in list_text:
+            if not isinstance(int(simbol), int):
+                errorMsg.showMessage(str("IP введен неверно, введите заново"))
+                return False
+
+            if int(simbol) < 0 or int(simbol) > 255:
+                errorMsg.showMessage(str("IP введен неверно, введите заново"))
+                return False
+
+        return True
+
+    def return_list(self):
+        list_ip = []
+        for i in range(self.ui.listWidget.count()):
+            row_ip = self.ui.listWidget.item(i).text()
+            list_ip.append(row_ip)
+        print(list_ip)
 
 
 class MyWidgetsTracert(QtWidgets.QWidget):
