@@ -1,8 +1,11 @@
+import random
+
 from PySide2 import QtWidgets, QtCore
 from PingMonitor_design_back import Ui_Form as Ui_Form_Ping
 from PingMonitorSettings_design_back import Ui_Form as Ui_Form_Setting
 from Tracert_design_back import Ui_Form as Ui_Form_Tracert
 
+import pythonping as pg
 
 class MyWidgetsMain(QtWidgets.QWidget):
 
@@ -17,13 +20,19 @@ class MyWidgetsMain(QtWidgets.QWidget):
         self.ui.pushButton_4.clicked.connect(self.open_settings)
         self.ui.pushButton_3.clicked.connect(self.open_tracert)
 
-        self.ui.pushButton.clicked.connect(self.return_list)
+        self.ui.pushButton.clicked.connect(self.start)
+
+        self.setting.signal.connect(self.show_list)
 
         self.start_add_ip = MyThread()
-        self.start_add_ip.started.connect(self.start)
+        self.start_add_ip.signal.connect(lambda x: print(x))
 
-        self.start_add_ip.signal.connect(self.setting.return_list, QtCore.Qt.QueuedConnection)
-
+    def show_list(self, data):
+        self.ui.tableWidget.clear()
+        self.ui.tableWidget.setRowCount(0)
+        for i in range(len(data)):
+            self.ui.tableWidget.insertRow(i)
+            self.ui.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(str(data[i])))
 
     def open_settings(self):
         self.setting.show()
@@ -32,9 +41,9 @@ class MyWidgetsMain(QtWidgets.QWidget):
         self.tracert.show()
 
     def start(self):
+        self.start_add_ip.set_ip(self.return_list())
         self.start_add_ip.start()
         # self.start_add_ip.ip_list(self)
-
 
     def return_list(self):
         list_ip = []
@@ -45,18 +54,22 @@ class MyWidgetsMain(QtWidgets.QWidget):
 
 
 class MyThread(QtCore.QThread):
-    signal = QtCore.Signal(int)
+    signal = QtCore.Signal(str)
+
+    def set_ip(self, data):
+        self.ip_list = data
 
     def run(self) -> None:
-        for i in range(1, 21):
-            self.sleep(3)
-            self.signal.emit(i)
-
-    def ip_list(self, count: int):
-        self.count = count
+        while True:
+            for i in self.ip_list:
+                status = random.choice(["Доступен", "Недоступен"])
+                self.sleep(1)
+                self.signal.emit(f"IP {i} - {status}")
 
 
 class MyWidgetsSetting(QtWidgets.QWidget):
+    signal = QtCore.Signal(list)
+
     def __init__(self, parent=None):
         super(MyWidgetsSetting, self).__init__(parent)
         self.ui = Ui_Form_Setting()
@@ -71,6 +84,7 @@ class MyWidgetsSetting(QtWidgets.QWidget):
 
         if check:
             self.ui.listWidget.addItem(text)
+            self.signal.emit(self.return_list())
 
     def del_ip(self):
         listItems = self.ui.listWidget.selectedItems()
@@ -104,7 +118,7 @@ class MyWidgetsSetting(QtWidgets.QWidget):
         for i in range(self.ui.listWidget.count()):
             row_ip = self.ui.listWidget.item(i).text()
             list_ip.append(row_ip)
-        print(list_ip)
+        return list_ip
 
 
 class MyWidgetsTracert(QtWidgets.QWidget):
