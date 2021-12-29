@@ -57,7 +57,7 @@ class MyWidgetsSetting(QtWidgets.QWidget):
         self.ui.setupUi(self)
 
         self.ui.pushButton.clicked.connect(self.add_ip)
-        self.ui.pushButton_2.clicked.connect(self.return_list)
+        self.ui.pushButton_2.clicked.connect(self.del_ip)
 
     def add_ip(self):
         text, ok = QtWidgets.QInputDialog.getText(self, "Введите IP", "Какой IP хотите ввести?")
@@ -65,6 +65,14 @@ class MyWidgetsSetting(QtWidgets.QWidget):
 
         if check:
             self.ui.listWidget.addItem(text)
+
+    def del_ip(self):
+        listItems = self.ui.listWidget.selectedItems()
+        if not listItems:
+            return
+
+        for item in listItems:
+            self.ui.listWidget.takeItem(self.ui.listWidget.row(item))
 
     def check_valid(self, text):
         list_text = text.split(".")
