@@ -20,6 +20,10 @@ class MyWidgetsMain(QtWidgets.QWidget):
         self.ui.pushButton.clicked.connect(self.return_list)
 
         self.start_add_ip = MyThread()
+        self.start_add_ip.started.connect(self.start)
+
+        self.start_add_ip.signal.connect(self.setting.return_list, QtCore.Qt.QueuedConnection)
+
 
     def open_settings(self):
         self.setting.show()
@@ -28,7 +32,7 @@ class MyWidgetsMain(QtWidgets.QWidget):
         self.tracert.show()
 
     def start(self):
-        self.return_list()
+        self.start_add_ip.start()
         # self.start_add_ip.ip_list(self)
 
 
@@ -44,7 +48,9 @@ class MyThread(QtCore.QThread):
     signal = QtCore.Signal(int)
 
     def run(self) -> None:
-        pass
+        for i in range(1, 21):
+            self.sleep(3)
+            self.signal.emit(i)
 
     def ip_list(self, count: int):
         self.count = count
